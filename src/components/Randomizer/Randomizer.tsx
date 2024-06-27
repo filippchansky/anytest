@@ -11,13 +11,14 @@ export const Randomizer = () => {
     const hours = now.getHours();
     const minutes = now.getMinutes();
     const timeString = `${hours}:${minutes}`;
+    console.log(timeString)
     if (
-      timeString === "17:00" ||
-      timeString === "17:01" ||
-      timeString === "17:02" ||
-      timeString === "17:03" ||
-      timeString === "17:04" ||
-      timeString === "17:05"
+      timeString === "17:10" ||
+      timeString === "17:11" ||
+      timeString === "17:12" ||
+      timeString === "17:13" ||
+      timeString === "17:14" ||
+      timeString === "17:15"
     ) {
       setRandomNumber(228);
     } else {

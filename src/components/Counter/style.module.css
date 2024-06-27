@@ -1,0 +1,8 @@
+.count {
+  margin-left: 100px;
+  transition: all .5s;
+}
+
+.count.active {
+  margin-left: 0;
+}

@@ -15,6 +15,7 @@ import {
 import React from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link, Outlet } from 'react-router-dom';
+import { router } from '../../router/router';
 
 interface LayoutProps {}
 
@@ -25,16 +26,16 @@ const Layout: React.FC<LayoutProps> = () => {
         setMobileOpen((prevState) => !prevState);
     };
 
-    const pages = [
-        {
-            link: '/',
-            label: 'Home',
-        },
-        {
-            link: '/about',
-            label: 'About Us',
-        },
-    ];
+    const pages = router.flatMap((item) =>
+        item.children.map((route) => {
+            return {
+                label: route.label,
+                link: route.path,
+            };
+        })
+    );
+
+    console.log(pages);
 
     const drawer = (
         <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
@@ -44,7 +45,7 @@ const Layout: React.FC<LayoutProps> = () => {
             <Divider />
             <List>
                 {pages.map((item) => (
-                    <Link to={item.link}>
+                    <Link to={item.link} key={item.label}>
                         <ListItem key={item.label} disablePadding>
                             <ListItemButton sx={{ textAlign: 'center' }}>
                                 <ListItemText primary={item.label} />
@@ -78,7 +79,7 @@ const Layout: React.FC<LayoutProps> = () => {
                     </Typography>
                     <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                         {pages.map((item) => (
-                            <Link to={item.link}>
+                            <Link to={item.link} key={item.label}>
                                 <Button key={item.label} sx={{ color: '#fff' }}>
                                     {item.label}
                                 </Button>

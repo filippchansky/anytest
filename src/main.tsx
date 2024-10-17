@@ -1,28 +1,11 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import './index.css';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import About from './pages/About';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import Layout from './components/Layout/Layout.tsx';
+import { router } from './router/router.tsx';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-const router = createBrowserRouter([
-  {
-      path: '/',
-      element: <Layout />, // Оборачиваем все страницы в Layout
-      children: [
-          {
-              path: '/',
-              element: <App />,
-          },
-          {
-              path: '/about',
-              element: <About />,
-          },
-      ],
-  },
-]);
+const mainRouter = createBrowserRouter(router);
 
 const darkTheme = createTheme({
     palette: {
@@ -32,9 +15,9 @@ const darkTheme = createTheme({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <>
-            <ThemeProvider theme={darkTheme}>
-                <CssBaseline />
-                <RouterProvider router={router} />
-            </ThemeProvider>
+        <ThemeProvider theme={darkTheme}>
+            <CssBaseline />
+            <RouterProvider router={mainRouter} />
+        </ThemeProvider>
     </>
 );

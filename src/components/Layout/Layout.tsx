@@ -1,37 +1,111 @@
-import React from 'react'
+import {
+    AppBar,
+    Box,
+    Button,
+    Divider,
+    Drawer,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemText,
+    Toolbar,
+    Typography,
+} from '@mui/material';
+import React from 'react';
+import MenuIcon from '@mui/icons-material/Menu';
 import { Link, Outlet } from 'react-router-dom';
 
-interface LayoutProps {
-}
+interface LayoutProps {}
 
-const Layout:React.FC<LayoutProps> = () => {
+const Layout: React.FC<LayoutProps> = () => {
+    const [mobileOpen, setMobileOpen] = React.useState(false);
+
+    const handleDrawerToggle = () => {
+        setMobileOpen((prevState) => !prevState);
+    };
 
     const pages = [
         {
             link: '/',
-            label: 'Home'
+            label: 'Home',
         },
         {
             link: '/about',
-            label: 'About Us'
-        }
-    ]
+            label: 'About Us',
+        },
+    ];
+
+    const drawer = (
+        <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
+            <Typography variant='h6' sx={{ my: 2 }}>
+                MUI
+            </Typography>
+            <Divider />
+            <List>
+                {pages.map((item) => (
+                    <Link to={item.link}>
+                        <ListItem key={item.label} disablePadding>
+                            <ListItemButton sx={{ textAlign: 'center' }}>
+                                <ListItemText primary={item.label} />
+                            </ListItemButton>
+                        </ListItem>
+                    </Link>
+                ))}
+            </List>
+        </Box>
+    );
 
     return (
         <>
-            <header>
-                <ul>
-                    {pages.map(item => (
-                        <li>
-                            <Link to={item.link}>{item.label}</Link>
-                        </li>
-                    ))}
-                </ul>
-            </header>
-            <main>
-                <Outlet/>
+            <AppBar component='nav'>
+                <Toolbar>
+                    <IconButton
+                        color='inherit'
+                        aria-label='open drawer'
+                        edge='start'
+                        onClick={handleDrawerToggle}
+                        sx={{ mr: 2, display: { sm: 'none' } }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <Typography
+                        variant='h6'
+                        component='div'
+                        sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+                    >
+                        MUI
+                    </Typography>
+                    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                        {pages.map((item) => (
+                            <Link to={item.link}>
+                                <Button key={item.label} sx={{ color: '#fff' }}>
+                                    {item.label}
+                                </Button>
+                            </Link>
+                        ))}
+                    </Box>
+                </Toolbar>
+            </AppBar>
+            <Drawer
+                //   container={container}
+                variant='temporary'
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                ModalProps={{
+                    keepMounted: true, // Better open performance on mobile.
+                }}
+                sx={{
+                    display: { xs: 'block', sm: 'none' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240 },
+                }}
+            >
+                {drawer}
+            </Drawer>
+            <main className='mt-[64px] p-5'>
+                <Outlet />
             </main>
         </>
-    )
-}
+    );
+};
 export default Layout;

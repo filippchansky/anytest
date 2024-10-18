@@ -1,4 +1,3 @@
-import { Webcam } from '@webcam/react';
 import React, { useEffect, useState } from 'react';
 import { useRef } from 'react';
 
@@ -6,7 +5,7 @@ interface MicroProps {}
 
 const Micro: React.FC<MicroProps> = () => {
     const [start, setStart] = useState(false);
-    const audioContextRef = useRef(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
     const sourceRef = useRef(null);
     const processorRef = useRef(null);
 
@@ -15,41 +14,31 @@ const Micro: React.FC<MicroProps> = () => {
             try {
                 // Получаем доступ к микрофону
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-  
-  mediaRecorder.ondataavailable = (event) => {
-    if (event.data.size > 0) {
-      console.log(event.data); // Отправляем закодированный аудио файл на сервер
-    }
-  };
-
+    
                 // Создаем AudioContext
                 audioContextRef.current = new (window.AudioContext || window.AudioContext)();
     
                 // Создаем источник из медиа потока
                 sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
     
-                // Создаем ScriptProcessorNode
-                processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+                // Загружаем AudioWorklet
+                await audioContextRef.current.audioWorklet.addModule('../helpers/audio-processor.js');
     
-                // Подключаем источник к процессору
-                sourceRef.current.connect(processorRef.current);
-                processorRef.current.connect(audioContextRef.current.destination);
+                // Создаем экземпляр AudioWorkletNode
+                const workletNode = new AudioWorkletNode(audioContextRef.current, 'my-audio-processor');
     
-                // Обрабатываем аудио данные
-                processorRef.current.onaudioprocess = (event) => {
-                    const inputBuffer = event.inputBuffer.getChannelData(0); // Получаем данные первого канала
-                    console.log(inputBuffer)
-                    // Создаем пустой аудиобуфер для воспроизведения
-                    const audioBuffer = audioContextRef.current.createBuffer(1, inputBuffer.length, audioContextRef.current.sampleRate);
-                    audioBuffer.copyToChannel(inputBuffer, 0, 0);
+                // Подключаем источник к worklet-узлу и worklet-узел к выходу
+                sourceRef.current.connect(workletNode);
+                workletNode.connect(audioContextRef.current.destination);
     
-                    // Создаем источник и проигрываем звук
-                    const source = audioContextRef.current.createBufferSource();
-                    source.buffer = audioBuffer;
-                    source.connect(audioContextRef.current.destination);
-                    source.start();
+                // Выводим информацию о буфере (при необходимости)
+                workletNode.port.onmessage = (event) => {
+                    console.log(event.data);
                 };
+    
+                // Обработка данных в AudioWorkletProcessor
+                processorRef.current = workletNode;
+    
             } catch (error) {
                 console.error('Error accessing the microphone:', error);
             }
@@ -60,13 +49,11 @@ const Micro: React.FC<MicroProps> = () => {
         }
     
         return () => {
-            console.log('unmoant')
+            console.log('unmount');
             // Остановите поток и очистите ресурсы при размонтировании компонента
-
             if (sourceRef.current) sourceRef.current.disconnect();
             if (processorRef.current) processorRef.current.disconnect();
             if (audioContextRef.current) audioContextRef.current.close();
-            
         };
     }, [start]);
     
@@ -76,7 +63,7 @@ const Micro: React.FC<MicroProps> = () => {
             <button onClick={() => setStart((prev) => !prev)}>
                 {start ? 'закончить' : 'начать'}
             </button>
-            <Webcam/>
+            {/* <Webcam /> */}
         </div>
     );
 };

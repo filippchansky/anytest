@@ -1,7 +1,6 @@
 import { Webcam } from '@webcam/react';
 import React, { useEffect, useState } from 'react';
 import { useRef } from 'react';
-import { AudioRecorder } from 'react-audio-voice-recorder';
 
 interface MicroProps {}
 
@@ -10,16 +9,6 @@ const Micro: React.FC<MicroProps> = () => {
     const audioContextRef = useRef(null);
     const sourceRef = useRef(null);
     const processorRef = useRef(null);
-
-
-    const compression = async (data: any) => {
-        const ds = new CompressionStream('gzip');
-        const writer = ds.writable.getWriter();
-        writer.write(data);
-        writer.close();
-        return await new Response(ds.readable).arrayBuffer();
-        // return ds
-    };
 
     useEffect(() => {
         const startRecording = async () => {
@@ -81,28 +70,6 @@ const Micro: React.FC<MicroProps> = () => {
         };
     }, [start]);
     
-
-    async function playSound(byteArray) {
-        const audioCtx = new (window.AudioContext || window.AudioContext)();
-        const arrayBuffer = new Uint8Array(byteArray).buffer;
-      
-        try {
-          // Декодирование массива байтов в аудио-данные
-          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-      
-          // Создание источника аудио
-          const source = audioCtx.createBufferSource();
-          source.buffer = audioBuffer;
-      
-          // Подключение источника к выходу (на динамики)
-          source.connect(audioCtx.destination);
-      
-          // Воспроизведение звука
-          source.start();
-        } catch (error) {
-          console.error("Ошибка при декодировании аудио:", error);
-        }
-      }
 
     return (
         <div>

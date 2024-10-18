@@ -1,6 +1,7 @@
 import App from '../App';
 import Layout from '../components/Layout/Layout';
 import About from '../pages/About';
+import Micro from '../pages/Micro';
 
 export const router = [
     {
@@ -17,6 +18,11 @@ export const router = [
                 path: '/about',
                 element: <About />,
             },
+            {
+                label: 'Microphone',
+                path: '/micro',
+                element: <Micro/>
+            }
         ],
     },
 ];

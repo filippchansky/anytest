@@ -1,69 +1,77 @@
+import { Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useRef } from 'react';
 
 interface MicroProps {}
 
 const Micro: React.FC<MicroProps> = () => {
-    const [start, setStart] = useState(false);
-    const audioContextRef = useRef<AudioContext | null>(null);
+    const [microState, setMicroState] = useState(false);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const audioContextRef = useRef<AudioContext>(null);
     const sourceRef = useRef(null);
-    const processorRef = useRef(null);
+    const workletNodeRef = useRef(null);
 
     useEffect(() => {
-        const startRecording = async () => {
+        const initMediaRecorder = async () => {
             try {
-                // Получаем доступ к микрофону
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    
-                // Создаем AudioContext
-                audioContextRef.current = new (window.AudioContext || window.AudioContext)();
-    
-                // Создаем источник из медиа потока
+                mediaRecorderRef.current = new MediaRecorder(stream);
+
+                // Инициализация AudioContext
+                audioContextRef.current = new window.AudioContext();
                 sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
-    
-                // Загружаем AudioWorklet
-                await audioContextRef.current.audioWorklet.addModule('../helpers/audio-processor.js');
-    
-                // Создаем экземпляр AudioWorkletNode
-                const workletNode = new AudioWorkletNode(audioContextRef.current, 'my-audio-processor');
-    
-                // Подключаем источник к worklet-узлу и worklet-узел к выходу
-                sourceRef.current.connect(workletNode);
-                workletNode.connect(audioContextRef.current.destination);
-    
-                // Выводим информацию о буфере (при необходимости)
-                workletNode.port.onmessage = (event) => {
-                    console.log(event.data);
+                sourceRef.current.connect(audioContextRef.current.destination); // Подключение к динамикам
+
+                // Загрузка AudioWorklet
+                await audioContextRef.current.audioWorklet.addModule('../src/helpers/audio.js');
+
+                // Создаем AudioWorkletNode после загрузки модуля
+                workletNodeRef.current = new AudioWorkletNode(
+                    audioContextRef.current,
+                    'audio-processor'
+                );
+
+                // Обработка сообщений от AudioWorklet
+                workletNodeRef.current.port.onmessage = (event) => {
+                    const float32Array = event.data; // Получаем Float32Array из AudioWorklet
+                    console.log(float32Array); // Выводим данные в консоль
                 };
-    
-                // Обработка данных в AudioWorkletProcessor
-                processorRef.current = workletNode;
-    
+
+                sourceRef.current.connect(workletNodeRef.current);
+                workletNodeRef.current.connect(audioContextRef.current.destination); // Подключение для воспроизведения
+
+                mediaRecorderRef.current.ondataavailable = (event) => {
+                    audioChunksRef.current.push(event.data);
+                };
+
             } catch (error) {
-                console.error('Error accessing the microphone:', error);
+                console.error('Error accessing the microphone: ', error);
             }
         };
-    
-        if (start) {
-            startRecording();
+        if (microState) {
+            initMediaRecorder();
         }
-    
+
         return () => {
-            console.log('unmount');
-            // Остановите поток и очистите ресурсы при размонтировании компонента
-            if (sourceRef.current) sourceRef.current.disconnect();
-            if (processorRef.current) processorRef.current.disconnect();
-            if (audioContextRef.current) audioContextRef.current.close();
+            if (audioContextRef.current) {
+                audioContextRef.current.close();
+            }
+            if (sourceRef.current) {
+                sourceRef.current.disconnect();
+            }
+            if (workletNodeRef.current) {
+                workletNodeRef.current.disconnect();
+            }
         };
-    }, [start]);
-    
+    }, [microState]);
 
     return (
         <div>
-            <button onClick={() => setStart((prev) => !prev)}>
-                {start ? 'закончить' : 'начать'}
-            </button>
-            {/* <Webcam /> */}
+            <h1>Audio Recorder</h1>
+            <Button variant='contained' onClick={() => setMicroState((prev) => !prev)}>
+                {microState ? 'Stop' : 'Start '}
+            </Button>
         </div>
     );
 };

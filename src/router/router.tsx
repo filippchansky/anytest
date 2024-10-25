@@ -2,6 +2,7 @@ import App from '../App';
 import Layout from '../components/Layout/Layout';
 import About from '../pages/About';
 import Micro from '../pages/Micro';
+import WebSocket from '../pages/WebSocket';
 
 export const router = [
     {
@@ -22,6 +23,11 @@ export const router = [
                 label: 'Microphone',
                 path: '/micro',
                 element: <Micro/>
+            },
+            {
+                label: 'WebSocket',
+                path: '/ws',
+                element: <WebSocket/>
             }
         ],
     },

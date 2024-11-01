@@ -14,9 +14,9 @@ const WebSocket: React.FC<WebSocketProps> = () => {
     const [messages, setMessages] = useState<Message[]>([
         { text: 'Connecting to chat...', type: 'server', date: new Date() },
     ]);
-
     const [inputValue, setInputValue] = useState('');
 
+    // ws://v2641459.hosted-by-vdsina.ru:8080/ws
     const webSocket = useWebSocket('ws://v2641459.hosted-by-vdsina.ru:8080/ws', {
         onConnected: (webSocket) =>
             setMessages((prevMessages) => [
@@ -24,19 +24,22 @@ const WebSocket: React.FC<WebSocketProps> = () => {
                 { text: `Connected to ${webSocket.url}`, type: 'server', date: new Date() },
             ]),
         onMessage: (event) => {
-            console.log(event)
+            console.log(event);
             setMessages((prevMessages) => [
                 ...prevMessages,
                 { text: event.data, type: 'server', date: new Date() },
             ]);
         },
-
-        onDisconnected: () =>
+        onDisconnected: () => {
+            // webSocket.send('хуй')
             setMessages((prevMessages) => [
                 ...prevMessages,
                 { text: 'Disconnected', type: 'server', date: new Date() },
-            ]),
+            ]);
+        },
     });
+
+    console.log(webSocket);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setInputValue(e.target.value);

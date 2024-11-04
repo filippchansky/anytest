@@ -49,7 +49,7 @@ const Micro: React.FC<MicroProps> = () => {
             console.log(JSON.parse(event.data));
             const res = JSON.parse(event.data)
             if(res.$type === 'user_id') {
-                localStorage.setItem('userId', JSON.stringify(res.user))
+                localStorage.setItem('userId', JSON.stringify(res.userId))
             }
             console.log(event.data)
             setMessages((prevMessages) => [
@@ -93,18 +93,21 @@ const Micro: React.FC<MicroProps> = () => {
 
                 // Обработка сообщений от AudioWorklet
                 workletNodeRef.current.port.onmessage = (event) => {
-                    const float32Array = event.data; // Получаем Float32Array из AudioWorklet
-                    // console.log(float32Array); // Выводим данные в консоль
-                    const data: IMicroData = {
-                        $type: "voice",
-                        soundFrame: {
-                            room: '00000000-0000-0000-0000-000000000000',
-                            user: JSON.parse(localStorage.getItem('userId')),
-                            sound: Array.from(float32Array)
-                        }
+                    console.log("XUY" + audioChunksRef.current.length)
+                    audioChunksRef.current.push(...event.data);
 
+                    if (audioChunksRef.current.length > 1920) {
+                        const data: IMicroData = {
+                            $type: "voice",
+                            soundFrame: {
+                                room: '00000000-0000-0000-0000-000000000000',
+                                userId: JSON.parse(localStorage.getItem('userId')),
+                                sound: Array.from(audioChunksRef.current)
+                            }
+                        }
+                        webSocket.send(JSON.stringify(data))
+                        audioChunksRef.current = []
                     }
-                    webSocket.send(JSON.stringify(data))
                 };
 
                 sourceRef.current.connect(workletNodeRef.current);

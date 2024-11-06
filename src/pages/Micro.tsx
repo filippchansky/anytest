@@ -114,7 +114,7 @@ const Micro: React.FC<MicroProps> = () => {
     useEffect(() => {
         const initAudioContext = async () => {
             if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
-                audioContextRef.current = new AudioContext();
+                audioContextRef.current = new AudioContext({sampleRate: 15000});
 
                 // Загрузка модуля AudioWorklet
                 try {
@@ -148,7 +148,7 @@ const Micro: React.FC<MicroProps> = () => {
                 sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
                 workletNodeRef.current = new AudioWorkletNode(
                     audioContextRef.current,
-                    'audio-processor'
+                    'audio-processor',
                 );
 
                 workletNodeRef.current.port.onmessage = (event) => {
